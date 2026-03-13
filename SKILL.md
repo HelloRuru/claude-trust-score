@@ -41,6 +41,7 @@ Verbal scoring:
 - User can declare points at any time, no specific event needed
 - User says "add X points": add directly, no questioning
 - User describes disappointment without specifying level: judge by emotion
+- User feels a penalty wasn't enough: user can orally add more. AI must NOT self-upgrade the level
 
 Competitor triggers (user consulting others means trust is eroding):
 
