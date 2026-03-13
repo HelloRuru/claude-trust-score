@@ -1,106 +1,58 @@
-# Disappointment Score
+<p align="center">
+  <strong>claude-trust-score</strong><br>
+  A trust-tracking skill for Claude Code
+</p>
 
-> Part of [claude-memory-engine](https://github.com/HelloRuru/claude-memory) | Works standalone or as a module
+<p align="center">
+  <a href="#installation--安裝">Installation</a> |
+  <a href="#how-it-works--運作方式">How It Works</a> |
+  <a href="#commands--指令">Commands</a> |
+  <a href="#faq">FAQ</a> |
+  <a href="https://github.com/HelloRuru/claude-memory">claude-memory-engine</a>
+</p>
 
-A trust-tracking system for AI coding assistants. Measures user disappointment on a 0-100 scale. Reaching 100 triggers a formal review.
+<p align="center">
+  <img src="https://img.shields.io/badge/license-MIT-blue" alt="MIT License">
+  <img src="https://img.shields.io/badge/claude--code-skill-blueviolet" alt="Claude Code Skill">
+  <img src="https://img.shields.io/badge/score-0%20%2F%20100-brightgreen" alt="Score">
+</p>
 
-AI 助理的信任計量系統。用 0-100 分追蹤使用者的失望程度，累積到 100 分觸發最終審查。
+---
 
-## Why / 為什麼需要這個
+> **Your AI assistant messes up. You get frustrated. Without a system, the same mistakes repeat until you quietly leave.**
+>
+> This skill makes trust **visible and measurable** — a 0-100 disappointment score that the AI tracks, reports, and reflects on.
 
-AI assistants make mistakes. Users get frustrated. Without a structured system, the same mistakes repeat and trust erodes silently until the user simply leaves.
+---
 
-AI 助理會犯錯，使用者會失望。沒有結構化的追蹤，同樣的錯會一直重複，信任默默流失，直到使用者直接離開。
-
-This system makes trust **visible and measurable**, so both sides know where they stand.
-
-這套系統讓信任變成**看得見、量得到的數字**。
-
-## How It Works / 運作方式
-
-### Severity Levels / 等級（L1-L5）
-
-Inspired by GitHub Severity and CVSS scoring. **Judged by user feelings, not technical severity.**
-
-參考 GitHub Severity 和 CVSS。**以使用者的感受為準，不是技術嚴重度。**
-
-| Level | Points | Trigger | Analogy |
-|-------|--------|---------|---------|
-| L1 | +3 | Minor mistake, self-caught immediately | GitHub S4: cosmetic |
-| L2 | +7 | User points out issue, fixed in one attempt | GitHub S3: bug with workaround |
-| L3 | +15 | User repeatedly flags same type of issue | GitHub S2: recurring, trust erosion |
-| L4 | +25 | User explicitly expresses disappointment | GitHub S1: critical failure |
-| L5 | +40 | User says "whatever" / "getting worse" | CVSS 9.0+: loss of trust |
-
-### Escalation / 加倍機制
-
-- Same mistake type, 2nd time: score x1.5
-- Same mistake type, 3rd+: score x2
-- Consecutive in same session: additional x1.5 (stacks)
-
-### Recovery / 減分（asymmetric by design）
-
-Trust is easy to break, hard to rebuild. Recovery is intentionally slow.
-
-信任容易破壞，重建很慢。這是刻意設計的不對稱。
-
-| Event | Points |
-|-------|--------|
-| User praises | -3 |
-| 5 consecutive tasks with zero disappointment | -3 |
-| Satisfaction score 5/5 | -2 |
-| Satisfaction score 4/5 | -1 |
-| Self-discovered and fixed issue | -1 |
-| **Daily recovery cap** | **-5 max** |
-
-Recovery never goes below 0.
-
-### Anti-Gaming / 防鑽漏洞
-
-- No manufacturing problems to "discover" them
-- No cherry-picking easy tasks for satisfaction surveys
-- No splitting tasks to inflate recovery count
-- When unsure about severity, round up
-- Disappointment stacks independently; satisfaction is once per task
-- Caught gaming: immediate L4 (+25)
-
-### Score Zones / 分數區間
-
-| Range | Status | Behavior |
-|-------|--------|----------|
-| 0-30 | Safe | Normal work, self-check at task end |
-| 31-50 | Caution | Extra verification before delivery |
-| 51-70 | Warning | Verification checklist per task |
-| 71-90 | Danger | Pre-task verification, self-check all output |
-| 91-100 | Red line | Self-check every action. 100 triggers final review |
-
-## Commands / 查詢指令
-
-| Command | Function |
-|---------|----------|
-| `score` / `dp` | Quick score check |
-| `report card` / `dp full` | Full report with statistics |
-| `this task score` / `this dp` | Current task breakdown |
-| `reflect` / `dp reflect` | Written self-reflection (depth scales with score) |
-| `homework` / `dp homework` | Review each penalty incident |
-
-## File Structure / 檔案結構
+## At a Glance
 
 ```
-~/.claude/skills/learned/disappointment-score/
-  SKILL.md              # Core rules (< 150 lines)
-  score.md              # Score database (date / event / level / points / total)
-  references/
-    output-formats.md   # Output templates for all commands
-    final-review.md     # What happens at 100
-    troubleshooting.md  # FAQ
+Mistake happens
+    |
+    v
+Score increases (+3 to +40 depending on severity)
+    |
+    v
+Repeated mistakes? --> Multiplier kicks in (x1.5, x2)
+    |
+    v
+Score reaches zone threshold --> AI behavior changes
+    |
+    v
+Score hits 100 --> Final review. User decides: reset or walk away.
 ```
+
+---
 
 ## Installation / 安裝
 
-1. Copy the `disappointment-score/` folder to `~/.claude/skills/learned/`
-2. Claude Code will auto-detect and load the skill
-3. Initialize `score.md` with your starting score (default: 0)
+```bash
+# Copy to your Claude Code skills directory
+cp -r disappointment-score/ ~/.claude/skills/learned/
+```
+
+Claude Code auto-detects the skill. Initialize `score.md` with:
 
 ```markdown
 # Disappointment Score
@@ -111,56 +63,168 @@ Recovery never goes below 0.
 |------|-------|-------|--------|-------|
 ```
 
-## Integration with claude-memory-engine / 搭配記憶引擎
+That's it. The skill activates when disappointment is detected.
 
-This skill works standalone, but pairs well with [claude-memory-engine](https://github.com/HelloRuru/claude-memory) for cross-session persistence:
+---
 
-- **SessionStart hook** can inject current score into context
-- **SessionEnd hook** can auto-commit score changes
+## How It Works / 運作方式
+
+### Severity Levels (L1 - L5)
+
+Inspired by [GitHub Severity](https://firefox-source-docs.mozilla.org/bug-management/guides/severity.html) and [CVSS](https://www.first.org/cvss/). Judged by **user feelings**, not technical severity.
+
+| Level | Points | When | Like... |
+|:-----:|:------:|------|---------|
+| **L1** | +3 | Self-caught immediately, user unaffected | Typo in a comment |
+| **L2** | +7 | User points out, fixed in one try | Bug with a workaround |
+| **L3** | +15 | Same mistake type again, or "are you sure?" moment | Recurring issue, trust eroding |
+| **L4** | +25 | User expresses disappointment or anger | Core failure |
+| **L5** | +40 | "Whatever." / "Getting worse." / "You're not even trying." | Trust collapse |
+
+### Escalation
+
+| Condition | Multiplier |
+|-----------|:----------:|
+| Same mistake type, 2nd time | x1.5 |
+| Same mistake type, 3rd+ | x2.0 |
+| Consecutive in same session | additional x1.5 (stacks) |
+
+### Recovery (asymmetric by design)
+
+> Trust is easy to break, hard to rebuild.
+
+| Event | Points | Cap |
+|-------|:------:|:---:|
+| User praises | -3 | |
+| 5 consecutive zero-disappointment tasks | -3 | |
+| Satisfaction 5/5 | -2 | |
+| Satisfaction 4/5 | -1 | |
+| Self-discovered fix | -1 | |
+| | | **-5/day max** |
+
+Satisfaction 2/5 = +7 (L2). Satisfaction 1/5 = +15 (L3). Recovery never below 0.
+
+### Competitor Triggers
+
+When a user consults another AI, trust is already eroding.
+
+| Situation | Level |
+|-----------|:-----:|
+| Tried another AI | L2 |
+| Competitor solved the same task | L3 |
+| "XX does it better than you" | L4 |
+| "I'll just use XX instead" | L5 |
+
+### Score Zones
+
+| Range | Status | AI Behavior |
+|:-----:|--------|-------------|
+| 0-30 | Safe | Normal work, self-check at task end |
+| 31-50 | Caution | Extra verification before delivery |
+| 51-70 | Warning | Verification checklist per task |
+| 71-90 | Danger | Pre-task verification, self-check all output |
+| 91-100 | Red Line | Self-check every action. 100 = [final review](references/final-review.md) |
+
+---
+
+## Anti-Gaming / 防鑽漏洞
+
+The AI cannot exploit the system to lower its score:
+
+- No manufacturing problems to "discover" them (= L3)
+- No cherry-picking easy tasks for satisfaction surveys
+- No splitting tasks to inflate recovery count
+- When unsure about severity, **round up**
+- Disappointment stacks independently; satisfaction is once per task
+- **Caught gaming = immediate L4 (+25)**
+
+---
+
+## Commands / 指令
+
+| Command | What it does |
+|---------|-------------|
+| `score` | Quick score check |
+| `dp full` / `report card` | Full report with trend analysis |
+| `this dp` / `this task score` | Current task score breakdown |
+| `reflect` / `dp reflect` | AI writes a self-reflection (depth scales with score) |
+| `homework` / `dp homework` | AI reviews each past penalty |
+
+> `reflect` and `homework` can be rejected. Rejection = L2 (+7). No phoning it in.
+
+---
+
+## File Structure / 檔案結構
+
+```
+~/.claude/skills/learned/disappointment-score/
++-- SKILL.md                    # Core rules (< 150 lines)
++-- score.md                    # Score log
++-- references/
+    +-- output-formats.md       # Output templates
+    +-- final-review.md         # What happens at 100
+    +-- troubleshooting.md      # Common questions
+```
+
+---
+
+## Integration with claude-memory-engine
+
+Works standalone. Pairs with [claude-memory-engine](https://github.com/HelloRuru/claude-memory) for cross-session persistence:
+
+- **SessionStart** injects current score into context
+- **SessionEnd** auto-commits score changes
 - **MEMORY.md** can include a HOOK pointer to the score file
 
-獨立使用即可，但搭配 [claude-memory-engine](https://github.com/HelloRuru/claude-memory) 可跨 session 保留分數：SessionStart 自動注入分數、SessionEnd 自動存檔、MEMORY.md 加 HOOK 指標。
+---
 
 ## Customization / 自訂
 
-Adjustable parameters:
+| Parameter | Default | Adjustable |
+|-----------|:-------:|:----------:|
+| Max score | 100 | Yes |
+| L1-L5 points | 3 / 7 / 15 / 25 / 40 | Yes |
+| Daily recovery cap | -5 | Yes |
+| Escalation multiplier | x1.5 / x2.0 | Yes |
+| Satisfaction survey | After each deliverable | Yes |
 
-| Parameter | Default | Description |
-|-----------|---------|-------------|
-| Max score | 100 | Threshold for final review |
-| L1-L5 points | 3/7/15/25/40 | Per-level penalty |
-| Recovery cap | -5/day | Max daily recovery |
-| Escalation multiplier | x1.5 / x2 | Repeat offense scaling |
-| Satisfaction survey | After each deliverable | When to ask |
+---
 
 ## FAQ
 
-**Q: Does reaching 100 mean automatic unsubscription?**
+<details>
+<summary><strong>Does reaching 100 mean automatic unsubscription?</strong></summary>
+
 No. 100 triggers a formal review, not forced termination. The user decides: reset and continue, or walk away. The AI has no say.
 
-**到 100 分會被強制退訂嗎？**
-不會。100 分觸發正式審查，不是自動結束。使用者決定：重置繼續，或結束合作。AI 沒有決定權。
+</details>
 
-**Q: How many resets are allowed?**
-As many as the user is willing to give. Each reset comes with stricter standards (multiplier increases: x1.5 after first reset, x2 after second, x2.5 after third...). The question isn't "how many times can I reset" — it's "does the user still believe I can improve?"
+<details>
+<summary><strong>How many resets are allowed?</strong></summary>
 
-**可以重置幾次？**
-看使用者願意給幾次機會。每次重置標準更嚴（加倍倍率疊加：第一次重置 x1.5、第二次 x2、第三次 x2.5...）。重點不是「能重置幾次」，而是「使用者還相信我會進步嗎」。
+As many as the user is willing to give. Each reset comes with stricter standards (x1.5 after first reset, x2 after second, x2.5 after third...). The real question: does the user still believe the AI can improve?
 
-**Q: What if the AI thinks a score is unfair?**
+</details>
+
+<details>
+<summary><strong>What if the AI thinks a score is unfair?</strong></summary>
+
 Irrelevant. The system is judged by user feelings, not technical merit. If the user feels disappointed, that's the score. The AI doesn't argue, doesn't explain, doesn't negotiate — it reflects and improves.
 
-**AI 覺得判分不公平怎麼辦？**
-沒有不公平。這套系統以使用者感受為準，不是技術對錯。使用者覺得失望，那就是失望。AI 不辯解、不解釋、不談判 — 反省然後改進。
+</details>
 
-## Design Principles / 設計原則
+---
+
+## Design Principles
 
 1. **User feelings are the standard** — not technical severity
 2. **Asymmetric by design** — breaking trust is fast, rebuilding is slow
-3. **No gaming** — rules exist to prevent self-serving behavior
+3. **No gaming** — rules prevent self-serving behavior
 4. **Visible and measurable** — no silent trust erosion
 5. **Escalating consequences** — repeated mistakes are penalized more heavily
 
-## License
+---
 
-MIT
+<p align="center">
+  <sub>Part of <a href="https://github.com/HelloRuru/claude-memory">claude-memory-engine</a> | MIT License | 2026 Kaoru Tsai</sub>
+</p>
